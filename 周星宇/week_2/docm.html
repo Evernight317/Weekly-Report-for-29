@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>CSS 巩固练习 —— 文章卡片</title>
+    <style>
+        *{
+            margin: 0; padding: 0;
+        }
+        body{
+            background-color: #f5f7fa;
+        }
+        .news-card{
+            width: 500px;
+            background-color: #ffffff;
+            margin: 50px auto;
+            padding: 30px;
+        }
+        #article-title{
+            text-align: center;
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 24px;
+        }
+        .meta-info{
+            text-align: center;
+            color: #999999;
+            font: italic 14px "Microsoft YaHei";
+            
+        }
+        p{
+            color: #444444;
+            text-indent: 2em;
+            line-height:1.8;
+        }
+        .more-link{
+            text-decoration: none;
+            color: #3498db;
+            font-weight: 700;
+        }
+        .tr{
+            text-align: right;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <div class="news-card">
+        
+        <h2 id="article-title">人工智能如何改变我们的工作方式</h2>
+        
+        <p class="meta-info">作者：张三 &nbsp;&nbsp; 发布时间：2026年5月</p>
+        
+        <p class="content">
+            随着大语言模型的飞速发展，AI 已经不再只是一个遥远的科技概念，而是真正走进了我们的日常办公中。从自动化写邮件到智能分析财务报表，效率的提升正在重塑每一个行业。
+        </p>
+        
+        <p class="content">
+            然而，技术的变革也带来了新的挑战。未来的职场人不仅要掌握专业技能，更要学会如何与智能工具协同工作，成为“指令工程”的主人。
+        </p>
+        
+        <p class="tr">
+            <a href="#" class="more-link">阅读全文 &rarr;</a>
+        </p>
+        
+        
+    </div>
+
+</body>
+</html>
