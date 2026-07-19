@@ -1,0 +1,198 @@
+
+# Git分布式版本控制工具
+
+# 1. Git 环境配置与别名配置
+
+# 配置全局开发者身份信息
+git config --global user.name "your_name"
+git config --global user.email "your_email@example.com"
+
+# 查看配置是否成功
+git config --global user.name
+git config --global user.email
+
+# 解决Windows环境下 Git Bash 终端与路径中文乱码问题
+git config --global core.quotepath false
+
+# 在用户目录下创建/配置别名文件
+touch ~/.bashrc
+
+# .bashrc 内部需要写入的文本：
+alias git-log='git log --pretty=oneline --all --graph --abbrev-commit'
+alias ll='ls -al'
+
+# 刷新配置使其立即生效
+source ~/.bashrc
+
+
+# 2. 本地仓库基础操作闭环实践 (工作区 -> 暂存区 -> 本地库)
+
+# 创建并进入一个练习用的空目录
+mkdir -p /c/git_practice/repo01
+cd /c/git_practice/repo01
+
+# 初始化当前目录为Git本地仓库
+git init
+
+# 创建一个测试文件
+touch file01.txt
+echo "count = 1" > file01.txt
+
+# 查看当前工作区状态
+git status
+
+# 将文件从工作区添加到暂存区
+git add file01.txt
+# 或者添加当前目录下所有修改：git add .
+
+# 再次查看状态（此时file01.txt应显示为绿色New File状态，代表已暂存）
+git status
+
+# 将暂存区内容正式提交到本地仓库
+git commit -m "commit 001: 首次创建file01文件"
+
+# 查看提交日志历史（如果有配置别名，可直接用 git-log）
+git log
+
+# 修改文件并进行第二次提交 
+echo "update count = 2" >> file01.txt
+git status
+git add .
+git commit -m "update 002: 更新file01的内容"
+git log --pretty=oneline
+
+# 回退到首次创建文件的状态，先通过log获取对应的commitID
+# 命令格式：git reset --hard <commitID>
+# 示例：git reset --hard a975438
+
+# 回退操作，想找回刚刚最新的代码，使用reflog查看所有操作历史
+git reflog
+# 找到最新一次commit对应的ID后，再次使用reset指令穿越回来
+# git reset --hard <最新commitID>
+
+# 3. 编写 .gitignore 忽略机制规范文本
+
+
+# 在工作区根目录下创建忽略配置文件
+touch .gitignore
+
+# 典型的 .gitignore 纯文本配置示例：
+cat << 'EOF' > .gitignore
+# 忽略所有扩展名为 .a 的编译文件
+*.a
+
+# 尽管上面忽略了 .a，但强制追踪 lib.a 
+!lib.a
+
+# 仅仅忽略当前根目录下的 TODO 文件，不包含子目录下的 TODO
+/TODO
+
+# 忽略整个 build/ 编译输出目录
+build/
+
+# 忽略 doc 目录下的一级 txt 文件
+doc/*.txt
+
+# 忽略 doc 目录及其多级子目录下的所有 pdf 文件
+doc/**/*.pdf
+EOF
+
+
+# 4. 分支协同开发与手动冲突解决
+
+# 查看当前的本地分支列表
+git branch
+
+# 创建一个名为 dev01 的新开发特性分支
+git branch dev01
+
+# 切换到刚刚创建的 dev01 分支
+git checkout dev01
+# 提示：以上两步可精简合并为一步：git checkout -b dev01
+
+# 在 dev01 分支上开发新代码并提交
+touch file02.txt
+echo "feature code from dev01" > file02.txt
+git add .
+git commit -m "add file02 on dev"
+
+# 切换回主线 master 分支
+git checkout master
+
+# 将 dev01 分支的代码合并到主线 master
+git merge dev01
+
+# 合并成功后，安全删除已经被合并过的临时分支 dev01
+git branch -d dev01
+
+
+# 模拟并手动解决分支合并冲突
+# 1. 在当前 master 分支对 file01.txt 的最后一行修改并提交
+echo "master branch modification" >> file01.txt
+git add .
+git commit -m "master modify file01"
+
+# 2. 创建并切入一个修复分支 bug01，并在老版本基础上对 file01.txt 的同一行进行修改
+# 我们从上一个未冲突版本切出
+git checkout -b bug01 HEAD~1
+echo "bug01 branch modification" >> file01.txt
+git add .
+git commit -m "bug01 modify file01"
+
+# 3. 切换回 master 尝试合并 bug01 分支，触发冲突冲突
+git checkout master
+git merge bug01  # 此时终端会爆出 CONFLICT (content) 错误
+
+# 4. 打开 file01.txt 文本，此时内部会有如下标记：
+# <<<<<<< HEAD
+# master branch modification
+# =======
+# bug01 branch modification
+# >>>>>>> bug01
+
+# 5. 使用编辑器删掉 <<<, ===, >>> 标记，把两行整理合并成你最终想要的正确代码：
+# "master and bug01 merged code successfully"
+
+# 6. 将处理完毕的文件重新加入暂存区并完成最终提交
+git add file01.txt
+git commit -m "fix conflict: 解决master与bug01的冲突"
+
+
+
+# 5. 远程仓库（Gitee码云）交互、SSH公钥配对及多机数据拉取
+
+# 本地生成高强度安全 SSH 密钥对
+ssh-keygen -t rsa -C "your_email@example.com"
+
+# 打印并复制公钥文本，将其粘贴到 Gitee 
+cat ~/.ssh/id_rsa.pub
+
+# 验证本地与云端托管平台的互信连接是否配置成功
+ssh -T git@gitee.com
+
+# 本地物理仓库与云端新建的远程仓库建立正式长连接
+# 命令格式：git remote add <远端自定义名称> <仓库路径SSH>
+git remote add origin git@gitee.com:your_username/your_project.git
+
+# 查看当前本地仓所绑定的所有远程仓库简析
+git remote
+git branch -vv
+
+# 将本地 master 分支首次推送到远程仓库，并建立长期的上游追踪关联（--set-upstream）
+git push --set-upstream origin master:master
+# 绑定后，后续日常提交只需简写为：git push
+
+# 多人协作/另一台电脑：克隆、抓取与拉取同步
+# 克隆全量代码到本地另一个目录
+git clone git@gitee.com:your_username/your_project.git git_project_site02
+
+# 日常协同开发时，必须遵循先拉后推原则
+# 仅仅抓取云端最新版本库信息（本地工作区看不到变化，不进行自动merge）
+git fetch origin master
+
+# 拉取云端最新修改并与当前本地分支自动安全合并（等同于 fetch + merge）
+git pull origin master
+
+# 验证本地代码与远程云端版本完全对齐
+git log
+
