@@ -1,0 +1,102 @@
+#项目实践：Git团队协同沙盘推演
+#在 Git Bash 中单机模拟“项目经理”与“两个组员”的协同冲突解决
+
+
+
+
+# 1. 创建三个目录（模拟云端、组长、组员）
+cd /c/
+mkdir -p git_sandbox/{cloud_repo.git,leader_workspace,member_a,member_b}
+
+# 初始化"云端远程仓库" (使用 --bare 参数创建一个纯代码托管的裸仓库)
+cd /c/git_sandbox/cloud_repo.git
+git init --bare
+echo "云端裸仓库初始化完成..."
+
+
+# 2. 组长（Leader）工作流：初始化脚手架并首推入库
+
+cd /c/git_sandbox/leader_workspace
+git init
+
+# 模拟组长创建基础架构代码和忽略文件
+touch .gitignore
+echo "*.class" > .gitignore
+echo "target/" >> .gitignore
+
+mkdir src
+touch src/Main.java
+echo "public class Main { public static void main(String[] args) { System.out.println("v1.0"); } }" > src/Main.java
+
+# 组长提交代码
+git add .
+git commit -m "init: 组长初始化项目基础脚手架"
+
+# 组长将本地仓库与云端裸仓库关联，并推送！
+git remote add origin /c/git_sandbox/cloud_repo.git
+git push --set-upstream origin master
+
+
+# 3. 组员A工作流：克隆项目，开发新功能并推送到云端
+
+cd /c/git_sandbox/member_a
+# 组员A克隆代码
+git clone /c/git_sandbox/cloud_repo.git .
+
+# 组员A修改 Main.java 的同一行
+echo "public class Main { public static void main(String[] args) { System.out.println("v1.0 modified by Member A"); } }" > src/Main.java
+
+# 组员A提交并推送
+git add .
+git commit -m "feat: 组员A完成了核心逻辑修改"
+git push origin master
+echo "组员A推送成功！此时云端代码已经是组员A的版本。"
+
+
+# 4. 组员B工作流：并发修改、触发冲突与化解危机
+
+cd /c/git_sandbox/member_b
+# 组员B（假设早些时候已经克隆）
+git clone /c/git_sandbox/cloud_repo.git .
+# 此时组员B拿到的是组员A推送【之前】的代码（因为他是之前克隆的，我们模拟他重置到最初）
+git reset --hard HEAD~1 2>/dev/null || echo "重置模拟并发环境" # 仅为脚本模拟效果
+
+# （沙盘重置：让组员B强制回到组长提交的状态，模拟并发）
+git fetch origin
+git reset --hard origin/master~1
+
+# 组员B不知道组员A已经改了代码，自己也修改了 Main.java 的同一行
+echo "public class Main { public static void main(String[] args) { System.out.println("v1.0 modified by Member B!!"); } }" > src/Main.java
+
+# 组员B提交到本地仓库 (本地提交绝对成功)
+git add .
+git commit -m "feat: 组员B完成了牛逼的功能"
+
+# 组员B尝试推送 (此时必然报错：Rejected! Non-fast-forward)
+echo "--- 组员B尝试推送，即将遇到真实工作中最常见的报错 ---"
+git push origin master || echo "【推送失败】：远程仓库包含您本地没有的提交。"
+
+
+# 5. 组员B解决冲突闭环 (核心铁令：先 pull，解冲突，再 push)
+
+# 1. 获取云端最新代码并尝试合并 (会触发 CONFLICT 报错)
+git pull origin master
+
+# 2. 此时 src/Main.java 已经被 Git 打上了冲突标记 (<<<<<<< ======= >>>>>>>)
+# 脚本模拟手动解决冲突：假设组员B与组员A商量后，决定保留双方的打印语句
+echo "public class Main { public static void main(String[] args) { System.out.println("v1.0 modified by Member A"); System.out.println("v1.0 modified by Member B!!"); } }" > src/Main.java
+
+# 3. 冲突解决完毕，重新加入暂存区
+git add src/Main.java
+
+# 4. 提交一个 Merge Commit (告诉Git冲突已经解决完毕)
+git commit -m "fix: 手动解决组员A与组员B在 Main.java 上的代码合并冲突"
+
+# 5. 再次推送！本次必将畅通无阻。
+git push origin master
+echo "【推送成功】：组员B完美解决了冲突，云端现已包含所有人的智慧结晶！"
+
+
+# 6. 环境清理 
+
+# rm -rf /c/git_sandbox

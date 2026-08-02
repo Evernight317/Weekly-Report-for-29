@@ -1,0 +1,274 @@
+一、欧拉角与四元数
+	欧拉角：用三个独立的角度（x、y、z）表示绕对应轴的旋转，单位是度（°）。 在 Unity 里，transform.eulerAngles 就是物体的欧拉角旋转值。
+	四元数：用四个浮点数（x、y、z、w）表示旋转，本质是复数的扩展，数学上基于三维旋转的“轴角”表示法。在 Unity 里，transform.rotation 就是物体的四元数旋转值。
+
+	二者转换：
+	欧拉角--->四元数
+	// 绕Y轴旋转90度的四元数 
+	Quaternion rot = Quaternion.Euler(0, 90, 0); 
+	// 给物体设置旋转 
+	transform.rotation = rot;
+
+	四元数--->欧拉角
+	Quaternion rot = transform.rotation; 
+	Vector3 euler = rot.eulerAngles; // 得到对应的欧拉角(x,y,z) 
+	Debug.Log(euler.y); // 查看Y轴的旋转角度
+
+二、Debug
+	基础打印Debug:
+	1、核心打印方法
+	// 普通日志（白色） 
+	Debug.Log("正常信息");
+
+	 // 警告日志（黄色） 
+	Debug.LogWarning("警告信息"); 
+
+	// 错误日志（红色，中断逻辑） 
+	Debug.LogError("错误信息"); 
+
+	// 断言：条件不成立则报错，多用于校验参数、逻辑 
+	Debug.Assert(条件, "断言失败提示");
+
+	2、带对象打印，通常用于定位脚本、物体
+	//第二个参数传GameObject（MonoBehaviour），点击控制台日志可直接跳转到对应物体（脚本）
+	Debug.Log("玩家位置", gameObject);
+
+	绘制调制图形Debug:
+	即Scence窗口可视化，在Scene视图可见，打包后失效，用于看射线、范围、路径、碰撞框。
+
+	1、画线
+	// 两点连线 
+	Debug.DrawLine(起点, 终点); 
+	// 自定义颜色 + 持续时间（秒） 
+	Debug.DrawLine(起点, 终点, Color.red, 2f);
+
+	2、射线，用于检测射线、视线、攻击判定
+	// 起点 + 方向（单位向量） 
+	Debug.DrawRay(transform.position, transform.forward, Color.green);
+
+	3、两者组合，配合物理射线检测
+	if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit)) 
+	{ Debug.Log("击中：" + hit.collider.gameObject.name); }
+	// 同步画出射线 
+	Debug.DrawRay(transform.position, transform.forward * 10, Color.yellow);
+
+三、Application
+
+using System.Collections;using System.Collections.Generic;using UnityEngine;
+public class ApplicationTest : MonoBehaviour
+{
+    // Start is called before the first frame update
+    void Start()
+    {
+        //游戏数据文件夹路径(只读不写）（加密压缩）
+        Debug.Log(Application.dataPath+"/新建文本文档txt");
+        //持久化文件夹路径
+        Debug.Log(Application.persistentDataPath);
+        //StreamingAssets文件夹路径(只读)（配置文件）
+        Debug.Log(Application.streamingAssetsPath);
+        //临时文件
+        Debug.Log(Application.temporaryCachePath);
+        //控制是否在后台运行
+        Debug.Log(Application.runInBackground);
+        //打开一个url（打开一个链接）       	Application.OpenURL("https://www.bilibili.com/video/BV1GJ411x7h7/?spm_id_from=333.337.search-card.all.click&vd_source=82ce5a2f13318a7dde5e7a6ae6f15c91");
+       	//退出游戏
+       	Application.Quit();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+}
+
+四、同步与异步加载场景
+	创建新的场景：Project--->右键--->Creat--->Scene
+	场景转换：File--->Building Settings--->把两个场景拖进来
+
+	同步加载场景代码：
+using System.Collections;using System.Collections.Generic;using UnityEngine;using UnityEngine.SceneManagement;
+public class SceneTest : MonoBehaviour
+{
+    void Start()
+    {
+        //两个类，场景类，场景管理类
+        //SceneManager.LoadScene(1);//同步加载，表示直接加载到1号场景
+        //也可以名称跳转，如：
+        //SceneManager.LoadScene("MyScene");
+        //获取当前场景
+        Scene scene = SceneManager.GetActiveScene();
+        //场景名称
+        Debug.Log(scene.name);
+        //场景是否已经加载
+        Debug.Log(scene.isLoaded);
+        //场景路径
+        Debug.Log(scene.path);
+        //该场景在Building Settings里面对应的索引
+        Debug.Log(scene.buildIndex);
+        //获取当前场景所有游戏物体
+        GameObject[] gos=scene.GetRootGameObjects();
+        Debug.Log(gos.Length);
+
+        //场景管理类
+        //获取当前已加载场景数量
+        Debug.Log(SceneManager.sceneCount);
+        //创建新场景
+        Scene newScene=SceneManager.CreateScene("newScene");
+        //获取当前已加载场景数量
+        Debug.Log(SceneManager.sceneCount);
+        //卸载场景（异步销毁）
+        SceneManager.UnloadSceneAsync(newScene);
+        //加载场景
+        //LoadSceneMode.Single加载方式作为替换存在
+        //SceneManager.LoadScene("MyScene",LoadSceneMode.Single);
+        //LoadSceneMode.Additive加载方式作为叠加存在，但加载特别大的场景时会卡顿
+        SceneManager.LoadScene("MyScene",LoadSceneMode.Additive);
+    }
+    void Update()
+    {
+    }
+}
+
+	异步加载场景代码
+using System.Collections;using System.Collections.Generic;using UnityEngine;using UnityEngine.SceneManagement;public class AsyncTest : MonoBehaviour
+{
+    AsyncOperation operation;
+    void Start()
+    {
+        StartCoroutine(loadScene());
+    }
+
+    //协程方法用来异步加载场景
+    IEnumerator loadScene()
+    {
+        operation=SceneManager.LoadSceneAsync(1);
+        //加载完场景不要自动跳转
+        operation.allowSceneActivation = false;
+        yield return operation;
+    }
+
+    float timer = 0;
+
+    void Update()
+    {
+        //输出加载进度    0-0.9
+        Debug.Log(operation.progress);
+        timer += Time.deltaTime;
+        //如果到达5秒，再跳转
+        if (timer > 5)
+        {
+            operation.allowSceneActivation = true;
+        }
+    }
+}
+
+五、Transform
+	Unity中用于判断物体对象方向与旋转的类
+using System.Collections;using System.Collections.Generic;using UnityEngine;
+public class TransformTest : MonoBehaviour
+{
+    void Start()
+    {
+        //获取位置
+        Debug.Log(transform.position);
+        Debug.Log(transform.localPosition);
+
+        //获取旋转
+        //四元数
+        Debug.Log(transform.rotation);//相对于世界
+        Debug.Log(transform.localRotation);//相当于父物体
+        //欧拉角
+        Debug.Log(transform.eulerAngles);//相对于世界
+        Debug.Log(transform.localScale);//相对于父物体
+
+        //获取缩放
+        Debug.Log(transform.localScale);
+
+        //获取向量
+        Debug.Log(transform.forward);//前方
+        Debug.Log(transform.right);//右方
+        Debug.Log(transform.up);//上方
+
+        //父子关系
+        //获取父物体
+        //transform.parent.gameObject
+        //获取子物体个数
+        //Debug.Log(transform.childCount);
+        //解除与子物体的父子关系
+        //transform.DetachChildren();
+        //获取子物体
+        Transform trans=transform.Find("Child");
+        transform.GetChild(0);//指获取索引为0的子物体
+        //判断一个物体是不是另一个物体的子物体
+        bool res = trans.IsChildOf(transform);
+        Debug.Log(res);
+        //设置为父物体
+        trans.SetParent(transform);
+    }
+
+   
+    void Update()
+    {
+        //时时刻刻看向（0,0,0）点
+        //transform.LookAt(Vector3.zero);
+        //旋转
+        //transform.Rotate(Vector3.up, 1);//表示绕up轴，每一帧旋转1度
+        //绕某个物体旋转
+        //transform.RotateAround(Vector3.zero, Vector3.up, 5);//表示绕着世界的原点的up轴旋转，旋转速度为每一帧5
+        //移动
+        //transform.Translate(Vector3.forward * 0.1f);//表示向前方移动，每一帧移动0.1
+    }
+}
+
+六、键盘鼠标操作
+	Unity中常用来键盘鼠标监听以进行对象操作
+using System.Collections;using System.Collections.Generic;using UnityEngine;
+public class KeyTest : MonoBehaviour
+{
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        //鼠标点击
+        //按下鼠标 0左键 1右键 2滚轮
+        if (Input.GetMouseButtonDown(0))
+        {
+            Debug.Log("按下了鼠标左键");//只有按下瞬间会调用方法，长按也只调用一次
+        }
+        //持续按下鼠标左键
+        if(Input.GetMouseButton(0))
+        {
+            Debug.Log("持续按下鼠标左键");
+        }
+        //抬起鼠标左键
+        if(Input.GetMouseButtonUp(0))
+        {
+            Debug.Log("抬起了鼠标左键");
+        }
+
+        //按下键盘按键
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            Debug.Log("按下了A");
+        }
+        //持续按下键盘按键
+        if (Input.GetKey(KeyCode.A))
+        {
+            Debug.Log("持续按下了A");
+        }
+        //抬起键盘按键
+        if (Input.GetKeyUp(KeyCode.A))
+        {
+            Debug.Log("抬起了A");
+        }
+    }
+}
+
+七、虚拟轴
+	定义：虚拟轴是一个数值在-1~1内的数轴，这个数轴上重要的数值就是-1、0和1。当使用按键模拟一个完整的虚拟轴时需要用到两个按键，即将按键1设置为负轴按键，按键2设置为正轴按键。在无任何按键时，虚拟轴数值为0；按下按键1时，虚拟轴数值会从0~-1进行过渡；按下按键2时，虚拟轴数值会从0~1过渡。

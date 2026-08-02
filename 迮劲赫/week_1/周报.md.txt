@@ -1,0 +1,30 @@
+## 第一周周报
+之前接触过一点Linux，打算先学这个
+掌握了Linux的一些简单口令：ls 列出当前目录内容；ls -a 显示所有文件；ls -lh  显示文件大小
+cd .. 返回上一级目录；cd ~切换到当前用户的家目录；cd -切换到上一次所在的目录
+学习Linux系统文件，常见系统目录：
+/bin：存放常用的二进制命令文件
+/etc：存放系统的配置文件
+/home：普通用户的家目录
+/root：超级管理员（root）的家目录
+/usr：存放应用程序和文件
+/var：存放经常变动的文件（如日志文件）
+文件拷贝与复制、创建与删除，用到cp、touch、rm
+cp A B 复制A并重命名为B
+cp A/B/ 将 A 复制到B目录下
+cp -r A/ B/ 递归复制整个目录（复制文件夹必须加 -r）！
+cp -i A /B/ 如果目标文件存在则提示是否覆盖
+cp -p A /B/ 复制文件并保留原始属性（如修改时间、权限等）
+读取文本文件内容
+cat filename.txt  直接在终端显示整个文件内容（适合小文件）
+cat -n filename.txt  显示内容并附带行号
+head filename.txt 默认显示文件的前 10 行
+head -n 20 filename.txt  显示文件的前 20 行
+tail filename.txt # 默认显示文件的最后 10 行
+tail -n 50 filename.txt 显示文件的最后 50 行
+tail -f /var/log/syslog 实时追踪文件末尾的新增内容（常用于查看日志）
+-n控制多少行，-f看变化
+
+
+
+
