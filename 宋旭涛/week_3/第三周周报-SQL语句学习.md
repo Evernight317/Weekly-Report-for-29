@@ -18,7 +18,7 @@
 
 更新数据：UPDATE ... SET ... WHERE，注意 WHERE 条件避免全表更新。
 
-删除数据：DELETE FROM ... WHERE 与 TRUNCATE 的区别（删除 vs 重置）。
+删除数据：DELETE FROM ... WHERE 与 TRUNCATE 的区别。
 
 ### 2.3 数据查询语言（DQL）—— 重点
 基础查询：SELECT、DISTINCT、WHERE（比较运算符、逻辑运算符、IN、BETWEEN、LIKE 模糊匹配）、ORDER BY、LIMIT 分页。

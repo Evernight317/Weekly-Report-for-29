@@ -1,0 +1,27 @@
+sky:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: localhost
+    port: 3306
+    database: sky_take_out
+    username: root
+    # 密码优先从环境变量 SKY_DB_PASSWORD 读取；未设置时回退到本地默认值，防止真实密码提交到仓库
+    password: ${SKY_DB_PASSWORD:1234}
+  redis:
+    host: localhost
+    port: 6379
+    # 密码优先从环境变量 SKY_REDIS_PASSWORD 读取；未设置时回退到本地默认值，防止真实密码提交到仓库
+    password: ${SKY_REDIS_PASSWORD:123456}
+    database: 0
+  wechat:
+    # 微信小程序敏感配置，从环境变量读取，禁止硬编码提交到 git
+    appid: ${WX_APPID}
+    secret: ${WX_SECRET}
+    # 以下为微信支付配置，开通支付后取消注释并配置对应环境变量
+    # mchid: ${WX_MCHID}
+    # mch-serial-no: ${WX_MCH_SERIAL_NO}
+    # private-key-file-path: ${WX_PRIVATE_KEY_FILE_PATH}
+    # api-v3-key: ${WX_API_V3_KEY}
+    # we-chat-pay-cert-file-path: ${WX_CERT_FILE_PATH}
+    # notify-url: ${WX_NOTIFY_URL}
+    # refund-notify-url: ${WX_REFUND_NOTIFY_URL}
