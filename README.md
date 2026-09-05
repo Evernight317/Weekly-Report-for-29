@@ -1,6 +1,6 @@
 # Weekly-Report 2026
 
-## 29届NEUQ-ACM技术部周报收集仓库
+## 26届NEUQ-ACM技术部周报收集仓库
 
 ### 前置工作  
 1. 配置自己的SSH密钥，参考文档 [GitHub 配置SSH](https://docs.github.com/zh/authentication/connecting-to-github-with-ssh)   
