@@ -1,0 +1,128 @@
+本周主要学习了Unity引擎的触发组件，常用的物理关节，物理材质的基础使用，射线检测，粒子系统基础使用。
+
+一、触发
+1、条件：	①两个物体均有碰撞器
+		②至少有一个物体有刚体组件
+  		③其中一个物体的碰撞器要设定为触发器（勾选Is Trigger）
+
+2、触发常用场景
+	游戏中可设置一个触发器，只要角色与之触发，就让障碍门开启，如《魔兽世界》
+基础脚本代码（编写形式与碰撞的产生与监听类似）：
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+public class CubeControl : MonoBehaviour
+{
+    // Start is called before the first frame update
+void Start() {      }
+
+    // Update is called once per frame
+    void Update() { }
+
+    //开始触发
+    private void OnTriggerEnter(Collider other)
+    {
+        GameObject door = GameObject.Find("Door");
+        if (door != null) 
+        { 
+            door.SetActive(false);
+        }
+        //检测到触发区域发生触发，立即让Door消失
+    }
+    //持续触发
+    private void OnTriggerStay(Collider other) { }
+    //结束触发
+    private void OnTriggerExit(Collider other){  }
+}
+
+
+
+二、物理关节——铰链与弹簧
+1、Hinge Joint   铰链关节组件
+	①给物体添加该组件后物体上会出现一个灰色轴，此后物体沿该轴方向的运动被冻住
+	②灰色轴的位置计算：
+		以物体中心为零点，向什么方向偏移多少，该轴就向什么方向移动多少
+	注：Anchor代表轴位置
+	      Axis代表轴方向，是向量形式
+	③Hinge Joint组件的Motor部分
+		可以在该部分设置一些力，使门自动旋转（必须勾选Use Motor）
+
+2、Spring Joint   弹簧组件
+	①把想要连接的物体（必须包含刚体组件）拖到组件中的Connected Body中
+	②弹簧组件各个功能：
+	（此内容主要为界面截图的中文版，不方便写入文本文档）
+
+
+
+三、物理材质
+1、创建材质
+	Assets--->右键--->Create--->Physic Material--->将创建好的材质拖到物体的Mesh Collider组件的Material
+
+2、材质的功能从上至下依次为：	
+	Dynamic Friction 动态摩擦力
+
+	Static Friction 静态摩擦力
+
+	Bounciness 弹力：添加了数值后物体会变得“Q弹”，掉落地面后会像橡胶一样弹动
+
+	Friction Combine 摩擦组合：当物体与平面均有物理材质时，两者摩擦力的计算方法，计算方法从上至下依次为：平均，最小，乘法，最大
+
+	Bounce Combine 反弹合并：当物体与平面均有弹力时，两者反弹力的计算方法，计算方法从上至下依次为：平均，最小，乘法，最大
+
+
+
+四、射线检测
+1、常见情景：
+	点击寻路：如《英雄联盟》端游中可以通过鼠标点击控制角色移动
+
+2、常见的射线检测脚本代码：
+using System.Collections;using System.Collections.Generic;using UnityEngine;
+public class RayTest : MonoBehaviour
+{
+    // Start is called before the first frame update
+    void Start()
+    {
+        //方式1
+        //Ray ray = new Ray(Vector3.zero, Vector3.up);//表示从（0,0,0）点向上打出去的一条射线
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        //方式2
+        if (Input.GetMouseButtonDown(0))
+        {
+            //按下鼠标左键发射射线
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            //声明一个碰撞信息类
+            RaycastHit hit;
+            //碰撞检测，防止鼠标未点击到物体确依然执行
+            bool res = Physics.Raycast(ray, out hit);
+            //如果碰撞到的情况下，hit就有内容了
+            if (res==true) 
+            {
+                Debug.Log(hit.point);
+                transform.position = hit.point;
+            }
+
+            //多检测，射线碰到首个物体后不会停止，而是继续向下贯穿，返回值是数组
+            RaycastHit[] hits = Physics.RaycastAll(ray, 100, 1 << 10);//此代码意思是射线最大距离是100，且最多检测到第十图层
+        }
+    }
+}
+
+
+
+五、粒子系统
+1、创建一个粒子系统：
+	Hierarchy--->右键--->Effects--->Particle System
+
+2、粒子系统基础
+	（此部分内容为图片形式，不方便写入文本文档）
+
+3、粒子效果火苗实例
+	Renderer中的Material选用ParticleAfterburner
+	Emission中的Rate over Time改为100
+	Shape中的Shape选Cone，Angle改为0，Radius改为0.1,
+	Color over Lifetime中的Color改成最左边黄色，最右边红色
+	Size over Lifetime中的Size选用向下的函数曲线

@@ -1,0 +1,214 @@
+总结：本周主要学习了Unity引擎的声音组件，视频组件，角色控制组件，物理系统重力，物理系统碰撞。
+
+一、声音组件
+1、Unity声音一般分为两类：音乐&音效
+
+2、若要物体发出声音，首先需要声音监听组件，如Main Camera里面的Audio Listener；再来就是对应物体要有播放声音的组件（Audio Source）
+
+Audio Source组件中各个选项的功能（由上至下）
+AudioClip：音频剪辑
+输出
+静音
+绕过效果
+绕过混响区域
+唤醒时播放
+循环
+优先级
+音量
+音调
+立体声像
+空间混合
+混响区混合
+3D Sound Settings
+	多普勒级别
+	扩张
+	音量衰减
+	最小距离
+	最大距离
+
+注意：Unity音效若用MP3，循环播放时会卡顿、爆音、延时，尤其是UI界面的按钮点击音效，用WAV可避免这种情况；但是WAV占用内存大，若要做较长的音乐，应使用MP3。
+
+3、控制音频暂停与继续：
+	player.Pause();	与	player.UnPause();	--->	暂停播放&从暂停处继续播放
+	player.Stop();	与	player.Play();	--->	结束播放&从头播放
+
+音效播放：常用player.PlayOneShot(参数);  执行一次只会播放一次，参数指音效的名称
+
+二、视频组件
+1、添加游戏对象视频：
+	Project--->右键--->Creat--->Render Texture（渲染器纹理）
+
+2、播放视频的三种方法：
+
+	①在创建的平面上播放：创建任意一个平面--->添加Video Player组件--->将视频素材拖到组件的Video Clip上--->将组件的Render Mode改成Render Texture--->将Project里面的Render Texture拖到组件的Target Texture里面--->将Project里面的Render Texture拖到创建的平面上。
+
+	②在UI上播放：在Hierarchy上右键--->UI--->Raw Image--->将Project里面的Render Texture拖到UI的RawImage的Texture里面。
+
+	③用脚本播放：创建一个C#脚本：
+using System.Collections;using System.Collections.Generic;using UnityEngine;using UnityEngine.Video;//视频播放组件必要的一个引用工具
+public class VideoTest : MonoBehaviour
+{
+    private VideoPlayer player;
+    // Start is called before the first frame update
+    void Start()
+    {
+        player=GetComponent<VideoPlayer>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            if(player.isPlaying)
+            {
+                //视频暂停播放，并且再执行player.Play()后视频会从暂停处继续播放
+                player.Pause();
+                //视频结束播放，并且再执行player.Play()后视频会从头播放
+                //player.Stop();
+            }
+            else
+            {
+                player.Play();
+            }
+        }
+    }
+}
+
+三、角色控制组件
+1、角色控制的三种方法：
+	①商店中寻找符合需求的现成资源
+	②对于控制要求不高的情况，直接使用Unity本身提供的控制器
+	③通过物理系统自己制作控制器
+
+2、使用第2种方法：
+	创建一个平面--->创建一个物体充当游戏对象--->给游戏对象添加Character Controller组件--->创建一个C#脚本--->
+using System.Collections;using System.Collections.Generic;using UnityEngine;
+public class PlayerControl : MonoBehaviour
+{
+    private CharacterController player;
+    // Start is called before the first frame update
+    void Start()
+    {
+        player=GetComponent<CharacterController>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        //水平轴
+        float horizontal = Input.GetAxis("Horizontal");
+        //垂直轴
+        float vertical = Input.GetAxis("Vertical");
+        //创建成一个方向向量
+        Vector3 dir = new Vector3(horizontal, 0, vertical);
+        //Debug.DrawRay(transform.position, dir,Color.red);//打印出这个方向向量
+        //朝向该方向移动
+        player.SimpleMove(dir * 2);//*2指移动速度设为默认速度的2倍
+    }
+}
+
+四、物理系统	重力
+Rigidbody		刚体组件的各个选项说明（由上至下）：
+	Mass：代表物体质量
+
+	Drag：代表物体下落遇到的空气阻力
+
+	Angular Drag：代表物体旋转时受到的角阻力
+	
+	Use Gravity：勾选后物体会产生重力效果，但注意，不勾选只是没有重力效果，别的物理效果任然成立
+
+	Is Kinematic：是否开启运动学，勾选后物体不会产生任何物理效果
+
+	Interpolate：插值，一般默认None
+
+	Collision Detection：碰撞检测，
+		Discrete（离散的）最节省性能，但它是非连续性检测，若与高速物体碰撞检测，可能有未检测的碰撞时刻，导致穿模。
+		Continuous Dynamic（连续动态），适合高速物体（如子弹）的碰撞检测。
+		Continuous（连续），一般给静态对象（如地面）。
+		Continuous Speculative（连续检测），性能高于Discrete，低于其余二者，但仍有穿模可能。
+
+	Constraints（冻结）：
+		Freeze Position：冻结位置，勾选对应选项，物体在碰撞中不会在该轴向上运动
+		Freeze Rotation：冻结旋转，勾选对应选项，物体在碰撞中不会绕该轴向旋转
+
+五、物理系统	碰撞
+1、创建的任何物体都有一个Sphere Collider组件，组件的
+	Center模块是修改物体碰撞框的位置
+	Radius模块是修改物体碰撞框的半径
+
+2、碰撞产生的两个必要条件：
+	①物体必须有碰撞框
+	②碰撞的两个物体必须至少有一个物体具有刚体组件
+
+3、碰撞产生与碰撞效果
+using System.Collections;using System.Collections.Generic;using Unity.VisualScripting;using UnityEngine;
+public class FireTest : MonoBehaviour
+{
+    //创建一个爆炸预设体
+    public GameObject Prefab;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    //监听发生碰撞
+    private void OnCollisionEnter(Collision collision)
+    {
+        //创建一个爆炸物体
+        Instantiate(Prefab,new Vector3(0,0,0),Quaternion.identity);       //Instantiate(Prefab,transform.position, Quaternion.identity);//爆炸位置：火焰自身位置；旋转：不旋转
+
+        //销毁自身
+        Destroy(gameObject);
+        //获取碰撞到的物体
+        Debug.Log(collision.gameObject.name);
+    }
+
+    //持续碰撞中
+    private void OnCollisionStay(Collision collision)
+    {
+        
+    }
+
+    //结束碰撞方法
+    private void OnCollisionExit(Collision collision)
+    {
+
+    }
+}
+
+
+
+销毁碰撞效果
+using System.Collections;using System.Collections.Generic;using UnityEngine;
+public class ExplosionTest : MonoBehaviour
+{
+    float timer = 0;
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        timer += Time.deltaTime;
+        if(timer > 1)
+        {
+            Destroy(gameObject);
+        }
+    }
+}
+
+注意：碰撞产生与碰撞效果代码中的Instantiate(Prefab,transform.position, Quaternion.identity);指在与地面碰撞出生成碰撞效果，但是最终结果是这个碰撞效果偏差巨大，故用Instantiate(Prefab,new Vector3(0,0,0),Quaternion.identity);锁定碰撞效果产生的位置。
+
+原因：高速下落的刚体，物理检测有穿透误差： 物体还没完全落到地面，物理引擎就判定即将碰撞，触发 OnCollisionEnter； 等你生成爆炸之后，物理引擎继续把物体往下推进一段距离，最后停在更低的位置。 所以爆炸生成位置高于最终落地位置，视觉上明显偏移。

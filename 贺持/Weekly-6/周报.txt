@@ -1,0 +1,351 @@
+本周主要学习了渲线段渲染器基础、动画（Animation）、动画（Animator）、剪辑、反向动力学、导航组件
+
+一、渲线段渲染器
+	1、Line Renderer组件基础：
+		1、创建一个空物体，为其添加Line Renderer组件，在组件中的Materials中添加Default-Line材质
+
+		2、组件中的Positions中的Size表示划线的点数，最低是2，有几个点，下面就有几个可修改的坐标，表示以这些坐标为连接点划线
+
+		3、Corner Vertices，角顶点，当它数值越多，划线的拐角处越平滑
+
+		4、End Cap Vertices，末顶点，当它数值越多，划线末端处越平滑
+		
+		5、Color，可以给划线设定一个渐变颜色，用法同粒子系统的火焰特效
+
+		6、Loop，循环，勾选后划线会自动首尾相连
+
+		7、Scene Tools，加号表示可以通过鼠标点击，点击处会与划线末端相连；另一个按钮会显示划线各个连接点，可以拖动连接点以改变划线形状
+
+		8、Width，控制划线的宽度，可以在控制线条上右键，Add Key，拖动新加的拖动点可以控制划线粗细的渐变效果
+
+	2、划线脚本
+	注意：划线的连接点可能不是我们想要的准确位置，最终可能会导致划线只是在某一特定视角下是预期形状；其次若划线连接点过多，不方便手动调准连接点位置，就需要脚本来控制。
+	基础代码：
+using System.Collections;using System.Collections.Generic;using UnityEngine;
+public class lineTest : MonoBehaviour
+{
+    void Start()
+    {
+        //设点线段位置
+        //获取线段渲染器
+        LineRenderer lineRenderer = GetComponent<LineRenderer>();
+        lineRenderer.positionCount = 3;
+        //lineRenderer.SetPositions     用数组形式记录
+
+        //枚举法记录
+        lineRenderer.SetPosition(0, Vector3.zero);
+        lineRenderer.SetPosition(0, Vector3.one);
+        lineRenderer.SetPosition(0, Vector3.down);
+
+        //代码形式设置线段线段初始的宽度、颜色
+        lineRenderer.startColor = Color.blue;
+        lineRenderer.startWidth = 1;
+        lineRenderer.endColor = Color.red;
+        lineRenderer.endWidth = 1;
+    }
+    void Update()
+    {}
+}
+
+	3、Trail Renderer	  拖尾组件
+		该组件与Line Renderer组件相似
+		1、Time：指拖尾特效可存在的最长时间
+		2、Min Vertex Distance：指物体移动的最小距离后方可产生拖尾特效
+		3、Autodestruct：勾选后物体经过移动产生拖尾特效后，物体自动销毁
+		4、Width：此部分控制拖尾粗细，也可以控制粗细渐变，用法同Line Renderer
+
+
+
+二、动画（Animation）
+	1、Animation组件的基础常用功能
+		1、Animation：可拖动一个动画片段进去
+		2、Animations：本质是一个数组，作用是动画列表，可控制许多动画片段
+		3、Play Automatically：勾选后，动画默认自动播放（此项一般默认勾选）
+		4、Animate Physics：勾选后，动画驱动方式变为物理驱动（一般不勾选）
+		5、Culling Type：剔除方式，该方式有两个选项，
+			Always Animate，总是动画化，指动画执行后会一直执行下去
+			Based on Renderer，基于渲染来执行动画，比如视角看着物体，物体就执行动画；视角不看物体时，物体停止执行动画
+
+	2、制作动画
+		1、Window--->Animate--->Animate--->动画制作面板出来（也可直接ctrl+6）
+		2、选中一个物体后--->Create--->Add Property（添加属性）--->会弹出选中物体的全部组件--->以Transform组件为例，选中Transform
+		3、动画制作界面默认初始两帧，可以修改尾部帧的位置数值，动画执行时达到移动的效果；同时也可以在播放中间处加入关键帧，修改当前位置数值，达到“先慢后快”的简单动画效果
+		4、删去尾部帧，只保留开头帧--->点击动画制作面板的录制按钮--->把播放线拖拽至想录制的帧数上--->拖拽物体，完成录制
+		5、创建的动画也会生成相应的文件，选中动画文件，Default（默认），Once（只运行一次），Loop（循环运行），Ping Pong（乒乓，来回运行动画）
+		6、动画制作面板选中Curves可以看到物体位置的函数变化图像
+
+	3、通过脚本播放动画
+		1、Animation组件中的Animations部分的列表中包含动画
+		2、基础代码：
+using System.Collections;using System.Collections.Generic;using UnityEngine;
+public class AnimationTest : MonoBehaviour
+{
+    // Start is called before the first frame update
+    void Start()
+{}
+
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            GetComponent<Animation>().Play("2.left");
+        }
+    }
+}
+
+
+
+三、动画（Animator）
+	1、Animator组件
+		1、相对于Animation组件，没有了Animation和Animations部分，这两部分全合并为Controller（控制器）
+
+		2、先在Project处右键创建Animator Controller（动画控制器），再选中一个添加了Animator组件的物体，把创建好的动画控制器拖动到组件的Contorller上，再双击创建好的动画控制器，即可出现一个动画制作界面
+
+		3、ctrl+6--->选中物体--->Create--->创建动画，注意，此时创建的动画文件点开后明显与Animation创建的动画不同，这个动画文件主要有Loop Time（循环时间，一般默认勾选），Loop Pose（循环动作），Cycle Offset（周期偏移）
+
+		4、创建两个动画后，双击动画控制器，出现的界面中多了两个大方块，即动画状态，大方块的名称与动画名称相同，而且Entry方块会有一个箭头直线连接着第一个动画状态，指运行后默认执行该动画；也可以右键其他动画状态，Set as Layer Default State，把其他动画设置为默认动画
+
+		5、选中动画状态后Inspector处会出现相应的控制面板
+
+		6、脚本控制动画播放：
+using System.Collections;using System.Collections.Generic;using UnityEngine;
+public class AnimatorTest : MonoBehaviour
+{
+    private Animator animator;
+    void Start()
+    {
+        //获取动画器组件
+        animator = GetComponent<Animator>();
+    }
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(0)) 
+        {
+            animator.Play("right");
+        }
+    }
+}
+
+	2、过渡
+		1、Animator组件的动画制作界面中，要想执行完默认动画后，再执行下一个动画，可以在默认执行的动画状态上右键并Make Transition
+
+		2、想要通过按键控制动画过渡（比如按下鼠标左键，角色才由静止站立向前跑一段路）
+
+动画制作界面Animator--->Parameters--->点+号--->Trigger（触发器）并且命名---点击想操控的过渡箭头直线--->右边箭头直线的控制面板的Conditions部分添加刚才创建并命名的触发器
+之后运行，每次只有在动画制作界面Animator面板的Parameters中点击触发器，才会过渡一次动画
+
+		3、利用代码控制参数
+using System.Collections;using System.Collections.Generic;using UnityEngine;
+public class PlayerController : MonoBehaviour
+{
+    void Start()
+    {}
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F)) 
+        {
+            //触发Run参数（Run参数指创建的触发器的名称）
+            GetComponent<Animator>().SetTrigger("Run");
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            //触发Run参数（Run参数指创建的触发器的名称）
+            GetComponent<Animator>().SetTrigger("Jump");
+        }
+    }
+}
+		注意：按照代码，每次按下F键后，角色并不会立刻执行Run动画，而是执行完当前动画后再执行，导致有明显延迟效果
+
+		解决方案：选中要控制的过渡，右侧面板中有一个Has Exit Time（有退出时间），取消这个选项的勾选
+
+	3、移动
+		1、按住某个按键，角色持续性朝指定方向移动，松开按键后，物体重新站立静止，光靠Trigger（触发器）无法实现，而Animator动画制作面板的Parameters部分还有Bool、Int、Float，这些都可以实现
+
+		2、以Bool为例，创建好名称为“IsRun”的过渡，选中角色由静止指向跑步的过渡箭头，在右侧面板中的Conditions添加IsRun，并将它的值改为true；选中角色由跑步指向静止的过渡，在右侧面板中的Conditions添加IsRun，并将它的值改为false
+
+		注意：即使未勾选Has Exit Time，可能动作切换还是生硬
+		解决方案：过渡的Settings部分有【固定持续时间】选项，将其值该为0.2左右即可自然一点
+
+
+
+四、剪辑
+	1、FPS文件
+		1、每个模型的动画部分都包含在一个相应的FPS文件中，选中这个文件，在右侧Inspector控制面板中的最上方，有Model，Rig，Animation，Materials四个选项
+
+		2、选择Rig，其中的Animation Type部分有四个类型，None（无，文件不包含动画），Legacy（旧版，表示该文件的动画可以使用Animation组件），Generic（泛型，指所有类型动画，应使用Animator组件，），Humanoid（人形，指人形动画，应使用Animator组件）
+
+		3、选择Animation，该控制面板中有一个时间轴，可以自由调节时间轴长度，达成剪辑效果；时间轴下方有Loop Time（循环时间）选项，勾选后会循环播放，但Loop Pose（循环动作）右侧有一个loop match（循环匹配）灯，灯颜色为绿表示十分匹配，灯颜色为黄表示勉强匹配，灯颜色为红表示不匹配。
+		注意：该面板修改任何数据后必修下滑找到Apply按钮并点击应用
+
+	2、Curves曲线
+		1、在FPS文件的Animation中有一个Curves选项
+
+		2、点击这个选项，再点击+号，会创建一个曲线，点击这个曲线，会出现曲线控制面板，在控制面板中可以自由调节曲线，调节完成后点击Apply按钮
+
+		3、创建完成后该曲线会随着动画进行返回曲线上对应的值
+用处：比方说要让人物做出挥拳动作时拳头上出现火焰特效，就可以创建一条上升的曲线，随着挥拳的进行，曲线返回的数值越来越大并且将数值传递给火焰特效，使其越来越明显
+
+		4、获取曲线数值：
+			先在之前控制动画状态的面板中的Parameters中创建一个Float类型的参数，并命名为Test，此后随着跑步动作进行，Test参数不断改变
+
+	3、事件
+		1、在Curves下方有一个Events选项，点开后有一个时间轴
+
+		2、分别找出跑步时左脚着地与右脚着地帧，添加时间，分别命名为LeftFoot和RightFoot
+
+		3、可以直接在脚本中调用这两个函数
+
+		代码总结：
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+public class PlayerController : MonoBehaviour
+{
+    private Animator animator;
+    void Start()
+    {animator = GetComponent<Animator>();}
+    void Update()
+    {
+        //水平轴
+        float horizontal = Input.GetAxis("Horizontal");
+        //垂直轴
+        float vertical = Input.GetAxis("Vertical");
+        //向量
+        Vector3 dir=new Vector3(horizontal, 0,vertical);
+        //使角色面向向量
+        transform.rotation= Quaternion.LookRotation(dir);
+        //当用户按下方向键
+        if (dir != Vector3.zero)
+        {
+            //面向向量
+            transform.rotation= Quaternion.LookRotation(dir);
+            //播放跑步动画
+            animator.SetBool("IsRun", true);
+            //朝向前方移动
+            transform.Translate(Vector3.forward*0);
+        }
+        else
+        {
+            //播放站立动画
+            animator.SetBool("IsRun", false);
+        }
+        //随时获取Test参数并打印
+        Debug.Log(animator.GetFloat("Test"));
+    }
+
+    void leftFoot()
+    {Debug.Log("左脚")}
+    void rightFoot() 
+    {Debug.Log("右脚");}
+}
+
+	4、混合动画
+		1、打开动画状态控制面板--->右键--->Create State--->From New Blend Tree（从新混合树）
+
+		2、双击打开创建的从新混合树，进入了下一个层级，点开此层级的框框，右侧控制面板有一个Blend Type，默认选择1D就可以了（1D指一个参数控制混合动画，2D指两个参数控制混合动画）
+
+		3、该面板中还有一个Parameter（参数）部分，此时该部分只有Test一个参数选项，我们可以在动画状态控制面板的Parameters处创建一个新的Float参数，命名为Blend，此时可以给创建的从新混合树选择Blend选项
+
+		4、在这个面板的参数部分下面还有一个空列表，点击加号，Add Motion Field（添加运动域，即添加新动画）；New Blend Tree（添加从新混合树，即从新混合树嵌套）；选择两次Add Motion Field
+
+		5、分别给列表中的两个新参数添加走路与跑步动画，此时观察到第一个参数（走路）的Thresh为0，第二个参数（跑步）的Thresh为1；看向Blend Tree控制面板，此时Blend Tree框框有两个分叉，分别为走路和跑步，所以值为0时播放走路动画，值为1时播放跑步动画；
+但是把控制面板的进度条由0缓慢拖向1，角色动画就由走路逐渐加快直到跑步
+
+		6、一般Thresh值无法修改，想要手动修改该值，可将下方Automate Threshold选项取消勾选
+
+	5、动画图层
+		1、依旧是动画状态控制面板，之前都是在它的参数（Parametres）部分执行，而这个控制面板还有一个界面——Layers（图层），点开Layers，面板默认有一个Base Layer，而之前所有的动画状态我们都是在这个图层中进行，每个图层都有三个默认状态——Entry（入口状态），Exit，Any State（任何状态）
+
+		2、Any State，任何状态，比如控制面板有100个动画状态，如果要所有的动画状态都有一个到跑步的动画状态的过渡，直接操作就需要连接100个过渡，很复杂；然而只要让Any State与跑步的动画状态相连，即可表示当前所有动画状态都可以向跑步动画状态过渡
+
+		3、Entry与Exit，在动画图层右键，点击Create Sub-State Machine，可以创建一个子状态机，双击子状态机即可进入新图层，新图层依旧可以连接动画，还可以把动画与Exit连接表示“出去”
+子状态机运用：比如创建两个子状态机，分别表示装备刀与枪，当角色切换装备时，这两个状态机相互过渡，实现角色拿不同装备的动画
+
+		4、在Layers处点击+号，创建一个新的图层，在新图层中添加一个原地向右转的动画，点击新图层的齿轮，里面有一个Weight选项，表示权重，它与动画混合有点像，当新图层权重为0时，运行后角色只会执行Base Layer的站立动画；当新图层权重为1时（与Base Layer相同），运行后角色既会站立又会向右转（但作为动画混合的话二者明显不匹配）
+
+	6、骨骼遮罩
+		1、针对上一个笔记，既站立又向右转十分别扭，可以用到覆盖，调准角色模型骨骼。
+依旧，点击New Layer的小齿轮，上一个笔记说到的Weight，它下面有Mask（遮罩）与Blending（正在混合），当权重为1时，一般Blending是默认Override（覆盖），而Mask是None
+
+		2、在Project处右键，点击Avatar Mask，创建一个New Avatar Mask，点开它，在它的控制面板中点开Humanold，会出现一个人物模型，人物模型的绿色区域表示将会参与动画执行
+		比如，假设是【走路】与【站立挥手】的相互覆盖，则二者权重相同时【走路】与【站立】不匹配，动画会特别别扭，所以只需保留New Avatar Mask的手臂保持绿色，其余地方点红，并把这个文件夹拖动到【站立挥手】的Blending处，则【站立挥手】只会覆盖【走路】的手臂动作，而【走路】的脚部动作不干预，从而使动画效果自然
+
+
+
+五、反向动力学
+ 	反向动力学（Inverse Kinematic，缩写IK）：比如要控制一个角色的左手正对一个物体，正常应该是先抬起手臂，再抬动手腕，最后再指出手指；然而反向动力学是先指出手指，再抬动手腕，最后抬起手臂
+
+	1、在之前脚本中加上“public Transform target;”，而后角色脚本组件的控制面板多了一个Target，创建一个球体，并且将球体拖动到Target处
+
+	2、点开动画状态控制面板的Base Layer的齿轮，勾选【IK Pass】，表示这一层动画受IK影响
+
+	3、代码
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+public class PlayerController : MonoBehaviour
+{
+    public Transform target;//用以获取球体
+    private Animator animator;
+    void Start()
+    {
+        animator = GetComponent<Animator>();
+    }
+
+    void Update()
+    {
+        //水平轴
+        float horizontal = Input.GetAxis("Horizontal");
+        //垂直轴
+        float vertical = Input.GetAxis("Vertical");
+        //向量
+        Vector3 dir=new Vector3(horizontal, 0,vertical);
+        //使角色面向向量
+        transform.rotation= Quaternion.LookRotation(dir);
+        //当用户按下方向键
+        if (dir != Vector3.zero)
+        {
+            //面向向量
+            transform.rotation= Quaternion.LookRotation(dir);
+            //播放跑步动画
+            animator.SetBool("IsRun", true);
+            //朝向前方移动
+            //transform.Translate(Vector3.forward*0);
+        }
+        else
+        {
+            //播放站立动画
+            animator.SetBool("IsRun", false);
+        }
+        //随时获取Test参数并打印
+        Debug.Log(animator.GetFloat("Test"));
+    }
+
+    void leftFoot()
+    {
+        Debug.Log("左脚");
+    }
+    void rightFoot() 
+    {
+        Debug.Log("右脚");
+    }
+
+    private void OnAnimatorIK(int layerIndex)
+    {
+        //设置头部IK
+        animator.SetLookAtWeight(1);
+        animator.SetLookAtPosition(target.position);
+
+        //设置右手IK（位置权重）
+        animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1);
+        //设置右手IK（旋转权重）
+        animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 1);
+        //设置右手IK
+        animator.SetIKPosition(AvatarIKGoal.RightHand, target.position);
+        animator.SetIKRotation(AvatarIKGoal.RightHand,target.rotation);
+    }
+}
+
+	
