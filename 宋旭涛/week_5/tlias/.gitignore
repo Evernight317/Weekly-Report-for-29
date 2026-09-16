@@ -1,0 +1,29 @@
+# 编译产物
+target/
+build/
+out/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+logs/
+
+# 敏感配置
+sky-server/src/main/resources/application-dev.yml
+sky-server/src/main/resources/application-prod.yml
+
+# 依赖
+node_modules/
+venv/
