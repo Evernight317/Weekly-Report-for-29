@@ -10,4 +10,3 @@ filter-》interceptor（jwt）-》controller（~~异常~~ oss直接上传）-》
 3. 打开ngnix时有问题-》端口号被占用 就是记得是从前端访问打开ngnix之后
 4. 苍穹外卖看后端代码时 找不到log-》之前的mvnd不对应该是mvn才对+lombok和jdk不适配-》下次多多看看弹幕
 5. 前后端联调登录不上-》自己导入老师的yml 之前没有了解yml与properties同样作用要连接自己的mysql改username password
-6. 
