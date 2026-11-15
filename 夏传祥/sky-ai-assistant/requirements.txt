@@ -1,0 +1,32 @@
+# 安装：pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+# 说明：只锁"项目直接 import 的顶层包"，间接依赖（httpx、pydantic 等）交给 pip 解析，
+#      不手工抄，避免把传递依赖的版本钉死导致后续冲突。
+
+# ---------- 核心框架 ----------
+langchain==1.4.2
+langchain-core==1.6.9
+langchain-openai==1.6.2          # OpenAI 兼容协议，DeepSeek / 千问代理都走这个
+langgraph==1.2.11
+
+# ---------- 记忆（checkpointer）----------
+langgraph-checkpoint==4.3.0
+langgraph-checkpoint-sqlite==3.1.2
+
+# ---------- RAG 检索 ----------
+langchain-ollama==1.1.0          # OllamaEmbeddings(bge-m3)
+ollama==0.6.2                    # langchain-ollama 的底层客户端
+langchain-community==0.4.2       # UnstructuredMarkdownLoader（仅建索引用）
+langchain-unstructured==1.0.1
+unstructured==0.27.22
+numpy==2.5.3                     # retrieve 里的向量点积
+
+# ---------- 界面 ----------
+gradio==6.31.0                   # run_web.py
+
+# ---------- 配置与请求 ----------
+python-dotenv==1.2.2
+requests==2.34.2
+PyJWT==2.15.1                    # 签发测试用 JWT（scripts/gen_token.py）
+
+# ---------- 备用（多智能体官方封装，暂未 import，用到再放开）----------
+# langgraph-supervisor==0.0.31
