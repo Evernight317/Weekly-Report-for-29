@@ -1,0 +1,16 @@
+# 密钥与本地状态
+.env
+data/
+*.sqlite*
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+.vscode/
+
+# 系统
+Thumbs.db
+.DS_Store
